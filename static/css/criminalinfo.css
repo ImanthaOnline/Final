@@ -2,7 +2,7 @@
 #advanced-search-form{
     background-color: #fff;
     max-width: 800px;
-    margin: 160px auto 0;
+    margin: 10px auto 0;
     padding: 40px;
     color: #858b8e;
     box-shadow: 6px 6px 6px rgba(0,0,0,0.2);
@@ -84,7 +84,11 @@
 
     margin:0 auto;
 
+
+
 }
+
+
 .booth-capture-button{
     display: block;
     margin: 10px 0;
@@ -138,3 +142,4 @@
 .active {
     background-color: #4CAF50;
 }
+
