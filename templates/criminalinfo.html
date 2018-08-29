@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <link href="../static/css/criminalinfo.css" rel="stylesheet">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Advanced Search Form</title>
+    <style>
+body {margin:0;}
+
+.icon-bar {
+    width: 100%;
+    background-color: #555;
+    overflow: auto;
+}
+
+.icon-bar a {
+    float: left;
+    width: 10%;
+    text-align: center;
+    padding: 12px 0;
+    transition: all 0.3s ease;
+    color: white;
+    font-size:15px;
+	margin-left: 10%;
+}
+
+.icon-bar a:hover {
+    background-color: #000;
+}
+
+.active {
+    background-color: #4CAF50;
+}
+</style>
+</head>
+
+<body>
+
+<div class="icon-bar">
+  <a style="margin-left: 25%;" class="active" href="#"><i class="fa fa-home"></i></a>
+  <a href="/view/"><i class="fa fa-search"> Home </i></a>
+  <a href="#"><i class="fa fa-user"> Users </i></a>
+
+</div>
+    <div class="container" id="advanced-search-form">
+        <h2 style="margin-left:170px;"> Criminal Information Registration </h2>
+        <div style="margin-bottom:70px;" class="booth">
+			<video id="video" width="400" height="300"></video>
+			<a href="#" id="capture" class="booth-capture-button">Snapshot</a>
+			<canvas id='canvas' width="400" height="300"></canvas>
+			<div id="cam-holder">
+
+			</div>
+        </div>
+
+        <form  action="http://localhost:5000/criminalinfo/" method="POST" >
+
+            <div class="form-group">
+                <label for="nic">NIC Number</label>
+                <input type="text" class="form-control" placeholder="NIC number" name="nic">
+            </div>
+            <div class="form-group">
+                <label for="age">Name</label>
+                <input type="text" class="form-control" placeholder="Name" name="name">
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="text" class="form-control" placeholder="Age"  name="age">
+            </div>
+            <div class="form-group">
+                <label for="address">Address Line 01</label>
+                <input type="text" class="form-control" placeholder="Address Line 01"  name="add01">
+            </div>
+            <div class="form-group">
+                <label for="address1">Address Line 02</label>
+                <input type="text" class="form-control" placeholder="Address Line 02"  name="add02">
+            </div>
+            <div class="form-group">
+                <label for="address03">Address Line 03</label>
+                <input type="text" class="form-control" placeholder="Address Line 03"  name="add03">
+            </div>
+            <div class="form-group">
+                <label for="eye">Eye colour</label>
+                <input type="text" class="form-control" placeholder="Eye Colour"  name="eye">
+            </div>
+            <div class="form-group">
+                <label for="hair">Hair colour</label>
+                <input type="text" class="form-control" placeholder="Hair colour"  name="hair">
+            </div>
+            <div class="form-group">
+                <label>Gender</label>
+                <div class="radio">
+                    <label class="radio-inline">
+                        <input type="radio" name="optradio">Male</label>
+                    <label class="radio-inline">
+                        <input type="radio" name="optradio">Female</label>
+                </div>
+
+            </div>
+
+            <div class="clearfix"></div>
+            <button type="submit" class="btn btn-info btn-lg btn-responsive" id="search"> <span class="glyphicon glyphicon-floppy-saved"></span> Save </button>
+        </form>
+    </div>
+
+
+
+</body>
+
+</html>
