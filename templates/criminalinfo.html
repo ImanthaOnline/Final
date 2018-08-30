@@ -121,7 +121,7 @@
     </div>
 
 
-    <form action="http://localhost:5000/criminalinfo/" method="POST">
+    <form action="http://localhost:5000/criminalinfo/" id="add" method="POST">
 
         <div class="form-group">
             <label for="nic">NIC Number</label>
@@ -189,22 +189,7 @@
     var holder = document.getElementById('cam-img-holder');
     var blobArray = [];
 
-    $(function () {
 
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({video: true, audio: false})
-                .then(function (stream) {
-                    video.srcObject = stream;
-                    video.play();
-                })
-                .catch(function (error) {
-                    console.log(error.message);
-                })
-        } else {
-            alert("Your browser dont support!")
-        }
-
-    });
 
 
     var count = 0;
@@ -232,7 +217,68 @@
 
         }
     }
+  $(function () {
 
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({video: true, audio: false})
+                .then(function (stream) {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(function (error) {
+                    console.log(error.message);
+                })
+        } else {
+            alert("Your browser dont support!")
+        }
+
+    });
+$('#add').on('submit', function (e) {
+
+        e.preventDefault();
+        if (count < 10) {
+           alert('error', 'Please Capture 10 images');
+        } else {
+            var form = document.getElementById('add');
+            var formDataToUpload = new FormData(form);
+
+            for (i in blobArray) {
+                formDataToUpload.append("img", blobArray[i].blobs, blobArray[i].filename);
+            }
+
+
+            $.ajax({
+                type: 'POST',
+                url: '/criminalinfo/',
+                data: formDataToUpload,
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (data) {
+                    console.log(data)
+
+                    for (i in data['form_error']) {
+                        msg = data['form_error'][i][0];
+
+                    }
+                    for (i in data['error']) {
+                        msg = data['error'][i];
+
+                    }
+                    for (i in data['success']) {
+                        msg = data['success'][i];
+
+                    }
+                    if (data['value']==true){
+                        location.reload();
+                    }
+                }
+            })
+
+        }
+
+
+    })
 
     function b64toBlob(b64Data, contentType, sliceSize) {
         contentType = contentType || '';

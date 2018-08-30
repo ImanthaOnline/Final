@@ -1,11 +1,24 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import gc
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for,jsonify
 from connection import connection
 from passlib.hash import sha256_crypt
 from pymysql import escape_string as thwart
 
+from packages.preprocess import preprocesses
+from packages.classifier import training
+import os
+
 app = Flask(__name__)
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+TRAIN_FOLDER = './uploads/train/'
+PRE_FOLDER = './uploads/pre/'
+CLASSIFIER = './class/classifier.pkl'
+MODEL_DIR = './models'
+npy = ''
 
 
 @app.route('/')
@@ -92,17 +105,46 @@ def criminalinfo():
 
                 c.execute(
                     "INSERT INTO  criminalinfo (nic,name,age,addressline01,addressline02,addressline03,eyecolor,haircolor,gender) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (thwart(name), thwart(nic1), thwart(age), thwart(add01), thwart(add02), thwart(add03), thwart(eye),
+                    (thwart(nic1), thwart(name), thwart(age), thwart(add01), thwart(add02), thwart(add03), thwart(eye),
                      thwart(hair), thwart("nnn")))
-
-
                 conn.commit()
                 c.close()
                 conn.close()
+                target = os.path.join(APP_ROOT, 'uploads/train/' + nic1)
+                print(target)
+                if not os.path.isdir(target):
+                    os.mkdir(target)
+
+                count = 0
+                for file in request.files.getlist('img'):
+                    print(file)
+                    count = count + 1
+                    filename = file.filename
+                    print(filename)
+                    destination = "/".join([target, filename])
+                    print(destination)
+                    file.save(destination)
+
+                # ttt
+                obj = preprocesses(TRAIN_FOLDER, PRE_FOLDER)
+                nrof_images_total, nrof_successfully_aligned = obj.collect_data()
+
+                print('Total number of images: %d' % nrof_images_total)
+                print('Number of successfully aligned images: %d' % nrof_successfully_aligned)
+
+                print("Training Start")
+                obj = training(PRE_FOLDER, MODEL_DIR, CLASSIFIER)
+                get_file = obj.main_train()
+                print('Saved classifier model to file "%s"' % get_file)
+
+
+               # flash('User registeration succeeded please log in', 's_msg')
+                return jsonify(success=["User Registration Success"], value=True)
 
 
     except Exception as e:
         return (str(e))
+        print(e)
     return render_template("criminalinfo.html")
 
 
@@ -125,14 +167,15 @@ def view():
         eyecolor = raw[8]
 
         print(nic)
-        return render_template("view.html", nic=nic, name=name, address=address, address02=address02,address03=address03, age=age, haircolor=haircolor, eyecolor=eyecolor)
+        return render_template("view.html", nic=nic, name=name, address=address, address02=address02,
+                               address03=address03, age=age, haircolor=haircolor, eyecolor=eyecolor)
 
 
     except Exception as e:
         return (str(e))
 
-@app.route('/search/', methods=["GET", "POST"])
 
+@app.route('/search/', methods=["GET", "POST"])
 def search():
     try:
         c, conn = connection()
@@ -141,11 +184,11 @@ def search():
 
             arrest = request.form['arrestdate']
             details = request.form['details']
-            nic= request.form['nic']
+            nic = request.form['nic']
 
             print("gu")
             c.execute("INSERT INTO  commitedcrime (nic,commitdate,arresteddate,	details) values(%s,%s,%s,%s)",
-                          (thwart(nic),thwart(comit), thwart(arrest), thwart(details)))
+                      (thwart(nic), thwart(comit), thwart(arrest), thwart(details)))
             print("gu")
 
             conn.commit()
@@ -154,9 +197,10 @@ def search():
 
 
     except Exception as e:
-         return (str(e))
+        return (str(e))
 
     return render_template("regi.html")
+
 
 if __name__ == "__main__":
     app.run()
