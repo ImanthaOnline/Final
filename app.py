@@ -3,9 +3,9 @@ from __future__ import division
 from __future__ import print_function
 import gc
 
-from flask import Flask, render_template, request, redirect, url_for,jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from connection import connection
-from passlib.hash import sha256_crypt,md5_crypt
+from passlib.hash import sha256_crypt, md5_crypt
 from pymysql import escape_string as thwart
 
 from packages.preprocess import preprocesses
@@ -146,8 +146,7 @@ def criminalinfo():
                 get_file = obj.main_train()
                 print('Saved classifier model to file "%s"' % get_file)
 
-
-               # flash('User registeration succeeded please log in', 's_msg')
+                # flash('User registeration succeeded please log in', 's_msg')
                 return jsonify(success=["User Registration Success"], value=True)
 
 
@@ -157,8 +156,7 @@ def criminalinfo():
     return render_template("criminalinfo.html")
 
 
-@app.route('/view/', methods=["GET", "POST"])
-def view(filename="img.jpg"):
+def recognize(filename="img.jpg"):
     image_path = TEST_FOLDER + filename
     with tf.Graph().as_default():
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6)
@@ -261,9 +259,11 @@ def view(filename="img.jpg"):
 
     return False
 
+
 def random_name():
     name = md5_crypt.encrypt(str(time.time())).split("$")[2]
     return name
+
 
 @app.route('/identify/', methods=['POST'])
 def authenticateUser():
@@ -279,10 +279,30 @@ def authenticateUser():
         print(filename)
         file.save(destination)
 
-    result = view(filename)
+    result = recognize(filename)
     os.remove(destination)
 
-    return 'test'
+    if result is not False:
+        return jsonify(value=result)
+    else:
+        return jsonify(value="0758965123")
+
+
+
+
+
+@app.route('/find/<string:id>/')
+def find_user_details(id):
+
+    c, conn = connection()
+    c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(str(id))))
+    result = c.fetchone()
+    print (result)
+
+    c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(str(id))))
+    result1 = c.fetchall()
+    print(result1)
+    return render_template("searchone.html",data=result,result1=result1)
 
 
 @app.route('/search/', methods=["GET", "POST"])
@@ -311,9 +331,11 @@ def search():
 
     return render_template("regi.html")
 
+
 @app.route('/find/', methods=["GET", "POST"])
 def find():
     return render_template("view.html")
+
 
 if __name__ == "__main__":
     app.run()
