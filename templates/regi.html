@@ -39,55 +39,94 @@ body {margin:0;}
 .active {
     background-color: #4CAF50;
 }
+
+    .alert{
+
+        text-align: center;
+
+
+    }
 </style>
 
 </head>
 {%block body%}
 <body>
 <div class="icon-bar">
-  <a style="margin-left: 25%;"  href="#"> <i class="fa fa-home"> Home</i></a>
-  <a href="#"><i class="fa fa-search"> Search Criminal </i></a>
+  <a style="margin-left: 15%;"  href="/criminalinfo/"> <i class="fa fa-home"> Home</i></a>
+  <a href=/find/><i class="fa fa-search"> Search Criminal </i></a>
   <a href="#" class="active"><i class="fa fa-user" > Add Users </i></a>
+    <a href="/logout/"><i class="fas fa-sign-out-alt" > Log out</i></a>
 
 </div>
 <div class="container">
 
+{% if not data %}
+
+  {% else %}
+     <div class="alert alert-success" role="alert">
+    <strong>{{data}}</strong>
+</div>
+
+  {% endif %}
+<div class="wrapper fadeInDown">
+
+
 <div class="card bg-light">
+
 <article class="card-body mx-auto" style="max-width: 400px;">
+
 <h4>User Registration</h4>
 	<form action="http://localhost:5000/regi/" method="post">
 	<div class="form-group input-group">
 		<div class="input-group-prepend">
 		    <span class="input-group-text"> <i class="fa fa-user"></i> </span>
 		 </div>
-        <input name="fname" class="form-control" placeholder="Full name" type="text">
+          <input name="fname" class="form-control" placeholder="Full name" type="text"  required>
     </div> <!-- form-group// -->
+
+
     <div class="form-group input-group">
     	<div class="input-group-prepend">
 		    <span class="input-group-text"> <i class="fa fa-envelope"></i> </span>
 		 </div>
-        <input name="mail" class="form-control" placeholder="Email address" type="email">
+          <input name="mail" class="form-control" placeholder="Email address" type="email" required>
     </div> <!-- form-group// -->
+
 
         	<div class="form-group input-group">
 		<div class="input-group-prepend">
 		    <span class="input-group-text"> <i class="fa fa-user"></i> </span>
 		 </div>
-        <input name="username" class="form-control" placeholder="username" type="text">
+         <input name="username" class="form-control" placeholder="username" type="text"  required>
     </div> <!-- form-group// -->
+
+
     <div class="form-group input-group">
     	<div class="input-group-prepend">
 		    <span class="input-group-text"> <i class="fa fa-lock"></i> </span>
 		</div>
-        <input name="password" class="form-control" placeholder="Create password" type="password">
+             <input name="password" class="form-control" placeholder="Create password" id="password" type="password"  required>
     </div> <!-- form-group// -->
+
+
     <div class="form-group input-group">
     	<div class="input-group-prepend">
 		    <span class="input-group-text"> <i class="fa fa-lock"></i> </span>
 		</div>
-        <input name="repassword" class="form-control" placeholder="Repeat password" type="password">
+          <input name="repassword" class="form-control" placeholder="Repeat password"  id="confirm_password"  type="password"  required>
 
     </div> <!-- form-group// -->
+
+
+        <div class="form-group" >
+
+               <select class="form-control" name="type" id="exampleSelect1">
+                <option>Admin</option>
+                <option>User</option>
+
+            </select>
+        </div>
+
     <div class="form-group">
         <button type="submit" class="btn btn-primary btn-block"> Add User </button>
     </div>
@@ -96,7 +135,33 @@ body {margin:0;}
 </div>
 
 </div>
+<script>
 
+var password = document.getElementById("password")
+  , confirm_password = document.getElementById("confirm_password");
+
+function validatePassword(){
+  if(password.value != confirm_password.value) {
+    confirm_password.setCustomValidity("Passwordshhh Don't Match");
+  } else {
+    confirm_password.setCustomValidity('');
+  }
+}
+
+password.onchange = validatePassword;
+confirm_password.onkeyup = validatePassword;
+
+
+
+
+      window.setTimeout(function() {
+    $(".alert").fadeTo(500, 0).slideUp(500, function(){
+        $(this).remove();
+    });
+}, 4000);
+
+
+</script>
 
 {% endblock %}
 

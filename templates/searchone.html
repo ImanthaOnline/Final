@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="../static/css/view.css" rel="stylesheet">
     <style>
-
-
         .card {
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
             max-width: 800px;
@@ -50,24 +48,7 @@
             opacity: 0.7;
         }
 
-        .booth {
-            width: 500px;
-            background-color: #ccc;
-            border: 10px solid #ddd;
-            margin: 0 auto;
-            margin-bottom: 5%;
 
-        }
-
-        .booth-capture-button {
-            display: block;
-            margin: 10px 0;
-            padding: 10px 20px;
-            background-color: cornflowerblue;
-            color: #fff;
-            text-align: center;
-            text-decoration: none;
-        }
 
         #canvas {
             display: none;
@@ -117,40 +98,37 @@
             margin-left: 250px;
 
         }
+
+        .alert{
+            text-align: center;
+
+        }
     </style>
 
 </head>
 <body>
 
-<h2 style="text-align:center">Criminal lkjflkwjeflkjewlfkjel information</h2>
+<h2 style="text-align:center">Criminal Information</h2>
 
 <div class="card">
 
+<div class="alert alert-success" role="alert">
 
-    <div class="cam-view-holder">
-        <video id="cam-view"></video>
-        <canvas id="canvas" width="800" height="600"></canvas>
-    </div>
+  <strong>{{message}}</strong>
+</div>
 
 
-    <div class="row">
-        <div class="col-xs-8">
 
-        </div>
-        <!-- /.col -->
-        <div class="col-xs-4">
-            <button id="btnSubmit" onclick="capture()" class="btn btn-primary btn-block btn-flat">Search</button>
-        </div>
-        <!-- /.col -->
-    </div>
 
     <div class="details">
-        <h2>Nic Number : {{data[0]}}</h2>
-        <h2>Name {{data[0]}} </h2>
-        <h2>Age {{data[0]}} </h2>
-        <h2> Address</h2>
-        <h2>Hair color </h2>
-        <h2>Eye color</h2>
+        <h2>Nic Number :{{data[1]}}</h2>
+        <h2>Name:       {{data[2]}} </h2>
+        <h2>Age:        {{data[3]}} </h2>
+        <h2> Address:   {{data[4] }}  {{data[5]}} {{data[6]}}  </h2>
+        <h2>eye color:  {{data[7]}} </h2>
+        <h2>Hair color: {{data[8]}} </h2>
+        <h2>gender:     {{data[9]}} </h2>
+
     </div>
 
     <div style="margin: 24px 0;">
@@ -163,7 +141,7 @@
                 <tr class="movie-table-head">
                     <th>Crime comitted Date</th>
                     <th>Arrested Date</th>
-                    <th>Details about Commit Crime</th>
+                    <th>Details about Commited Crime</th>
 
                 </tr>
                 </thead>
@@ -171,46 +149,26 @@
 
                 <!--row-->
                 <tr class="dark-row">
-                    <td>Toy Story</td>
-                    <td><span style="color:green;">5</span> /5</td>
-                    <td>40000000000000000</td>
+
+
+                     {%for result in result1:%}
+
+                        <td>{{result[2]}}</td>
+                        <td>{{result[3]}}</td>
+                        <td>{{result[4]}}</td>
 
                 </tr>
                 <!--/.row-->
 
-                <!--row-->
-                <tr class="light-row">
-                    <td>The Shining</td>
-                    <td><span style="color:green;">5</span> /5</td>
-                    <td>37</td>
-
-                </tr>
-                <!--/.row-->
-
-                <!--row-->
-                <tr class="dark-row">
-                    <td>Rubber</td>
-                    <td><span style="color:red;">1</span> /5</td>
-                    <td>20</td>
-
-                </tr>
-                <!--/.row-->
-
-                <!--row-->
-                <tr class="light-row">
-                    <td>The Hangover</td>
-                    <td><span style="color:orange;">3</span> /5</td>
-                    <td>33</td>
-
-                </tr>
-                <!--/.row-->
+                   {% endfor %}
 
 
                 </tbody>
             </table>
         </div>
     </div>
-    <h2>Crminal comited</h2>
+
+    <h2>Crimes comited</h2>
     <form action="/search/" method="POST">
 
         <div class="form-group">
@@ -236,106 +194,11 @@
 <script>
 
 
-    var video = document.getElementById('cam-view');
-    var canvas = $('#canvas')[0];
-    var context = canvas.getContext('2d');
-
-    $(function () {
-
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({video: true, audio: false})
-                .then(function (stream) {
-                    video.srcObject = stream;
-                    video.play();
-                })
-                .catch(function (error) {
-                    console.log(error.message);
-                })
-        } else {
-            alert("Your browser dont support!")
-        }
+      window.setTimeout(function() {
+    $(".alert").fadeTo(500, 0).slideUp(500, function(){
+        $(this).remove();
     });
-
-    function b64toBlob(b64Data, contentType, sliceSize) {
-        contentType = contentType || '';
-        sliceSize = sliceSize || 512;
-
-        var byteCharacters = atob(b64Data);
-        var byteArrays = [];
-
-        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-            var byteNumbers = new Array(slice.length);
-            for (var i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-
-            var byteArray = new Uint8Array(byteNumbers);
-
-            byteArrays.push(byteArray);
-        }
-
-        var blob = new Blob(byteArrays, {type: contentType});
-        return blob;
-    }
-
-
-    (function () {
-        console.log('hfiehfieh');
-        var video = document.getElementById('video');
-        var canvas = document.getElementById('canvas');
-        // var photo = document.getElementById('photo');
-        var holder = document.getElementById('cam-holder');
-        context = canvas.getContext('2d');
-
-        if (navigator.mediaDevices.getUserMedia) {
-
-            navigator.mediaDevices.getUserMedia({video: {width: 400, height: 300}, audio: false})
-                .then(function (stream) {
-                    video.srcObject = stream;
-                    video.play();
-
-                })
-                .catch(function (error) {
-                    console.log(error.message);
-                });
-        }
-
-    })();
-
-    function capture() {
-        console.log("in capture image");
-        context.drawImage(video, 0, 0, 800, 600);
-        var imgUrl = canvas.toDataURL('image/png');
-        var block = imgUrl.split(";");
-        var contentType = block[0].split(":")[1];
-        var realData = block[1].split(",")[1];
-        var blob = b64toBlob(realData, contentType);
-
-        var newForm = new FormData();
-        newForm.append("img", blob, 'test.png');
-
-        $.ajax({
-            url: "/identify/",
-            data: newForm,// the formData function is available in almost all new browsers.
-            type: "POST",
-            contentType: false,
-            processData: false,
-            cache: false,
-
-            success: function (data) {
-               if (data['value']==false){
-
-               } else {
-                   window.location.replace('/find/'+data['value'])
-               }
-
-
-            },
-
-        });
-    }
+}, 4000);
 
 </script>
 </body>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Login Page</title>
 
      <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
      <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -17,6 +17,14 @@
 {%block body%}
 <body>
 <div class="wrapper fadeInDown">
+    {% if not data %}
+
+  {% else %}
+     <div class="alert alert-success" role="alert">
+    <strong>{{data}}</strong>
+</div>
+
+  {% endif %}
   <div id="formContent">
 
     <div class="fadeIn first">
@@ -39,7 +47,15 @@
 
   </div>
 </div>
+<script>
 
+       window.setTimeout(function() {
+    $(".alert").fadeTo(500, 0).slideUp(500, function(){
+        $(this).remove();
+    });
+}, 4000);
+
+</script>
 </body>
 {% endblock %}
 </html>

@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 import gc
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify,session
 from connection import connection
 from passlib.hash import sha256_crypt, md5_crypt
 from pymysql import escape_string as thwart
@@ -20,7 +20,14 @@ import tensorflow as tf
 from scipy import misc
 from packages import facenet, detect_face
 
+
+
+
+
 app = Flask(__name__)
+
+app.secret_key = "super secret key"
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 TRAIN_FOLDER = './uploads/train/'
 PRE_FOLDER = './uploads/pre/'
@@ -32,127 +39,157 @@ TEST_FOLDER = './uploads/test/'
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template("login.html")
+
+
+
+
+@app.route('/logout/', methods=['Get', 'Post'])
+def logout():
+
+    session.clear()
+    return render_template("login.html")
+
+
+
+
 
 
 @app.route('/login/', methods=['Get', 'Post'])
 def login():
     try:
+        session['auth'] = "true"
 
         c, conn = connection()
         if request.method == "POST":
             username = request.form['username']
             password = request.form['password']
             data = c.execute("SELECT * FROM userdetails WHERE username=(%s)", (thwart(username)))
-            data = c.fetchone()[3]
-            print(data)
-            if sha256_crypt.verify(password, data):
-                return redirect(url_for("criminalinfo"))
+            data = c.fetchone()
+            print(data[3])
+            if sha256_crypt.verify(password, data[3]):
+
+                session['auth'] = "true"
+                if data[5] == "Admin":
+                    print (data[5])
+                    return redirect(url_for("criminalinfo",data="login sucessfully"))
+                    print(data[5])
+                else:
+                    return redirect(url_for("find", data="login sucessfully"))
+                    print(data[5])
             else:
-                print("Inavalid credentials. try again")
+                return redirect(url_for("find", data="Invalid login Credential"))
 
         gc.collect()
-        return render_template("login.html")
+
 
     except Exception as e:
 
         print(e)
 
-    return render_template("login.html")
+    return render_template("login.html",data="Invalid login Cridential")
 
 
 @app.route('/regi/', methods=["GET", "POST"])
 def register():
-    try:
-        c, conn = connection()
-        if request.method == "POST":
-            username = request.form['username']
-            password = sha256_crypt.encrypt(str(request.form['password']))
-            fname = request.form['fname']
-            mail = request.form['mail']
+    if 'auth' in session:
+        try:
+            c, conn = connection()
+            if request.method == "POST":
+                username = request.form['username']
+                password = sha256_crypt.encrypt(str(request.form['password']))
+                fname = request.form['fname']
+                mail = request.form['mail']
+                type=request.form['type']
 
-            data = c.execute("SELECT * FROM  userdetails WHERE username=(%s)", (thwart(username)))
+                data = c.execute("SELECT * FROM  userdetails WHERE username=(%s)", (thwart(username)))
 
-            if int(data) > 0:
-                print(data)
-            else:
-                print("gu")
-                c.execute("INSERT INTO  userdetails (fname,username,password,email,status) values(%s,%s,%s,%s,%s)",
-                          (thwart(fname), thwart(username), thwart(password), thwart(mail), thwart("Active")))
-                print("gu")
+                if int(data) > 0:
+                    return render_template("regi.html", data="username is already exist")
+                else:
 
-                conn.commit()
-                c.close()
-                conn.close()
+                    c.execute("INSERT INTO  userdetails (fname,username,password,email,type,status) values(%s,%s,%s,%s,%s,%s)",
+                              (thwart(fname), thwart(username), thwart(password), thwart(mail), thwart(type), thwart("Active")))
 
 
-    except Exception as e:
-        return (str(e))
+                    conn.commit()
+                    c.close()
+                    conn.close()
+                return render_template("regi.html", data="user registered sucessfully")
 
+        except Exception as e:
+            return (str(e))
+    else:
+        return render_template("login.html",data="please log in")
     return render_template("regi.html")
 
 
 @app.route('/criminalinfo/', methods=["GET", "POST"])
 def criminalinfo():
-    try:
-        c, conn = connection()
-        if request.method == "POST":
-            name = request.form['name']
-            nic1 = request.form['nic']
-            age = request.form['age']
-            add01 = request.form['add01']
-            add02 = request.form['add02']
-            add03 = request.form['add03']
-            eye = request.form['eye']
-            hair = request.form['hair']
+    if 'auth' in session:
+        try:
+            c, conn = connection()
+            if request.method == "POST":
+                name = request.form['name']
+                nic = request.form['nic']
+                age = request.form['age']
+                add01 = request.form['add01']
+                add02 = request.form['add02']
+                add03 = request.form['add03']
+                eye = request.form['eye']
+                hair = request.form['hair']
+                gender = request.form['gender']
 
-            data = c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(nic1)))
+                data = c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(nic)))
 
-            if int(data) > 0:
-                print(data)
-            else:
+                if int(data) > 0:
+                    print(data)
+                else:
 
-                c.execute(
-                    "INSERT INTO  criminalinfo (nic,name,age,addressline01,addressline02,addressline03,eyecolor,haircolor,gender) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (thwart(nic1), thwart(name), thwart(age), thwart(add01), thwart(add02), thwart(add03), thwart(eye),
-                     thwart(hair), thwart("nnn")))
-                conn.commit()
-                c.close()
-                conn.close()
-                target = os.path.join(APP_ROOT, 'uploads/train/' + nic1)
-                print(target)
-                if not os.path.isdir(target):
-                    os.mkdir(target)
+                    c.execute(
+                        "INSERT INTO  criminalinfo (nic,name,age,addressline01,addressline02,addressline03,eyecolor,haircolor,gender) values(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                        (thwart(nic), thwart(name), thwart(age), thwart(add01), thwart(add02), thwart(add03), thwart(eye),
+                         thwart(hair), thwart(gender)))
+                    conn.commit()
+                    c.close()
+                    conn.close()
+                    target = os.path.join(APP_ROOT, 'uploads/train/' + nic)
+                    print(target)
+                    if not os.path.isdir(target):
+                        os.mkdir(target)
 
-                count = 0
-                for file in request.files.getlist('img'):
-                    print(file)
-                    count = count + 1
-                    filename = file.filename
-                    print(filename)
-                    destination = "/".join([target, filename])
-                    print(destination)
-                    file.save(destination)
+                    count = 0
+                    for file in request.files.getlist('img'):
+                        print(file)
+                        count = count + 1
+                        filename = file.filename
+                        print(filename)
+                        destination = "/".join([target, filename])
+                        print(destination)
+                        file.save(destination)
 
-                # ttt
-                obj = preprocesses(TRAIN_FOLDER, PRE_FOLDER)
-                nrof_images_total, nrof_successfully_aligned = obj.collect_data()
+                    # ttt
+                    obj = preprocesses(TRAIN_FOLDER, PRE_FOLDER)
+                    nrof_images_total, nrof_successfully_aligned = obj.collect_data()
 
-                print('Total number of images: %d' % nrof_images_total)
-                print('Number of successfully aligned images: %d' % nrof_successfully_aligned)
+                    print('Total number of images: %d' % nrof_images_total)
+                    print('Number of successfully aligned images: %d' % nrof_successfully_aligned)
 
-                print("Training Start")
-                obj = training(PRE_FOLDER, MODEL_DIR, CLASSIFIER)
-                get_file = obj.main_train()
-                print('Saved classifier model to file "%s"' % get_file)
+                    print("Training Start")
+                    obj = training(PRE_FOLDER, MODEL_DIR, CLASSIFIER)
+                    get_file = obj.main_train()
+                    print('Saved classifier model to file "%s"' % get_file)
 
-                # flash('User registeration succeeded please log in', 's_msg')
-                return jsonify(success=["User Registration Success"], value=True)
+                    # flash('User registeration succeeded please log in', 's_msg')
+                    return jsonify(success=["User Registration Success"], value=True)
 
 
-    except Exception as e:
-        return (str(e))
-        print(e)
+        except Exception as e:
+            return (str(e))
+            print(e)
+
+    else:
+        return render_template("login.html", data="please log in")
     return render_template("criminalinfo.html")
 
 
@@ -241,7 +278,7 @@ def recognize(filename="img.jpg"):
                         best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
                         print("Best Predictions ", best_class_probabilities)
 
-                        if best_class_probabilities[0] > 0.6:
+                        if best_class_probabilities[0] > 0.3:
                             print('Result Indices: ', best_class_indices[0])
                             print(HumanNames)
                             for H_i in HumanNames:
@@ -261,7 +298,7 @@ def recognize(filename="img.jpg"):
 
 
 def random_name():
-    name = md5_crypt.encrypt(str(time.time())).split("$")[2]
+    name = "recognize"
     return name
 
 
@@ -285,7 +322,7 @@ def authenticateUser():
     if result is not False:
         return jsonify(value=result)
     else:
-        return jsonify(value="0758965123")
+        return jsonify(value=result)
 
 
 
@@ -293,16 +330,20 @@ def authenticateUser():
 
 @app.route('/find/<string:id>/')
 def find_user_details(id):
+    if id =="false":
+        return render_template("view.html",message="Criminal Not Recognized")
+    else:
+        c, conn = connection()
 
-    c, conn = connection()
-    c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(str(id))))
-    result = c.fetchone()
-    print (result)
+        c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(str(id))))
+        result = c.fetchone()
+        print (result)
 
-    c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(str(id))))
-    result1 = c.fetchall()
-    print(result1)
-    return render_template("searchone.html",data=result,result1=result1)
+
+        c.execute("SELECT * FROM  commitedcrime WHERE nic=(%s)", (thwart(str(id))))
+        result1 = c.fetchall()
+        print(result1)
+        return render_template("searchone.html",data=result,result1=result1,message="Criminal Recognized sucessfully")
 
 
 @app.route('/search/', methods=["GET", "POST"])
@@ -316,10 +357,10 @@ def search():
             details = request.form['details']
             nic = request.form['nic']
 
-            print("gu")
+
             c.execute("INSERT INTO  commitedcrime (nic,commitdate,arresteddate,	details) values(%s,%s,%s,%s)",
                       (thwart(nic), thwart(comit), thwart(arrest), thwart(details)))
-            print("gu")
+
 
             conn.commit()
             c.close()
@@ -334,7 +375,47 @@ def search():
 
 @app.route('/find/', methods=["GET", "POST"])
 def find():
-    return render_template("view.html")
+    if 'auth' in session:
+        return render_template("view.html")
+    else:
+        return render_template("login.html", data="please log in")
+
+
+@app.route('/seachnic/', methods=["GET", "POST"])
+def findnic():
+    if 'auth' in session:
+        c, conn = connection()
+        try:
+            if request.method == "POST":
+                id = request.form['nic']
+                print(id)
+
+
+
+                c.execute("SELECT * FROM  criminalinfo WHERE nic=(%s)", (thwart(id)))
+                result = c.fetchone()
+                print(result)
+
+                c.execute("SELECT * FROM  commitedcrime WHERE nic=(%s)", (thwart(id)))
+                result1 = c.fetchall()
+                print(result1)
+
+
+
+                if not result:
+                    return render_template("searchone.html", data=result, result1=result1 , message="Criminal Not Found")
+                else:
+
+                    return render_template("searchone.html", data=result, result1=result1,message="Crimiinal Found Sucessfully")
+
+
+
+        except Exception as e:
+            return (str(e))
+            print(e)
+
+    else:
+        return render_template("login.html",data="please log in")
 
 
 if __name__ == "__main__":

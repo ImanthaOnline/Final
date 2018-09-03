@@ -101,9 +101,10 @@
 <body>
 
 <div class="icon-bar">
-    <a style="margin-left: 25%;" class="active" href="#"><i class="fa fa-home"></i></a>
-    <a href="/view/"><i class="fa fa-search"> Home </i></a>
-    <a href="#"><i class="fa fa-user"> Users </i></a>
+    <a style="margin-left: 15%;" class="active" href="#"><i class="fa fa-home"></i></a>
+    <a href="/find/"><i class="fa fa-search">  Criminal infomation</i></a>
+    <a href="/regi/"><i class="fa fa-user"> Users </i></a>
+    <a href="/logout/"><i class="fas fa-sign-out-alt"> log out </i></a>
 
 </div>
 
@@ -125,19 +126,19 @@
 
         <div class="form-group">
             <label for="nic">NIC Number</label>
-            <input type="text" class="form-control" placeholder="NIC number" name="nic">
+            <input type="text" class="form-control" placeholder="NIC number" name="nic"  maxlength="10" minlength="10" oninvalid="this.setCustomValidity('Please NIC must contain 10 characters ')" required>
         </div>
         <div class="form-group">
             <label for="age">Name</label>
-            <input type="text" class="form-control" placeholder="Name" name="name">
+            <input type="text" class="form-control" placeholder="Name"  pattern="[A-Za-z]{1-20}" name="name" oninvalid="this.setCustomValidity('Please numbers not allowed in name field')" required>
         </div>
         <div class="form-group">
             <label for="age">Age</label>
-            <input type="text" class="form-control" placeholder="Age" name="age">
+            <input type="text" class="form-control" placeholder="Age" name="age"  onkeypress="return isNumberKey(event)" maxlength="3" type="number" required>
         </div>
         <div class="form-group">
             <label for="address">Address Line 01</label>
-            <input type="text" class="form-control" placeholder="Address Line 01" name="add01">
+            <input type="text" class="form-control" placeholder="Address Line 01" name="add01" required>
         </div>
         <div class="form-group">
             <label for="address1">Address Line 02</label>
@@ -154,15 +155,15 @@
         </div>
         <div class="form-group">
             <label for="hair">Hair colour</label>
-            <input type="text" class="form-control" placeholder="Hair colour" name="hair">
+            <input type="text" class="form-control" placeholder="Hair colour" name="hair" required>
         </div>
         <div class="form-group">
             <label>Gender</label>
             <div class="radio">
                 <label class="radio-inline">
-                    <input type="radio" name="optradio">Male</label>
+                    <input type="radio" name="gender"  value="Male">Male</label>
                 <label class="radio-inline">
-                    <input type="radio" name="optradio">Female</label>
+                    <input type="radio" name="gender"  value="Female">Female</label>
             </div>
 
         </div>
@@ -181,6 +182,14 @@
         crossorigin="anonymous"></script>
 
 <script>
+    	function isNumberKey(evt)
+			{
+				var charCode = (evt.which) ? evt.which : evt.keyCode;
+				if (charCode != 46 && charCode > 31
+				&& (charCode < 48 || charCode > 57))
+				return false;
+				return true;
+			}
 
 
     var video = document.getElementById('cam-view');
@@ -236,9 +245,10 @@
 $('#add').on('submit', function (e) {
 
         e.preventDefault();
-        if (count < 10) {
+        if (count <= 10) {
            alert('error', 'Please Capture 10 images');
         } else {
+            alert('error', 'Please Capture 10 images');
             var form = document.getElementById('add');
             var formDataToUpload = new FormData(form);
 
@@ -271,6 +281,9 @@ $('#add').on('submit', function (e) {
                     }
                     if (data['value']==true){
                         location.reload();
+
+
+
                     }
                 }
             })
